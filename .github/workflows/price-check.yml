@@ -1,0 +1,93 @@
+name: Nintendo Price Monitor
+
+# Laeuft alle 15 Minuten + erlaubt manuelles Triggern ueber 'Run workflow'.
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+# Verhindert parallele Runs - sonst koennen zwei Jobs gleichzeitig
+# price_state.json schreiben wollen und in einen Git-Konflikt rennen.
+concurrency:
+  group: price-monitor
+  cancel-in-progress: false
+
+# Der Job committet bei relevanten Aenderungen price_bot/price_state.json zurueck.
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    env:
+      # Scheduler nutzt datetime.now() - ohne TZ waere das UTC.
+      # Berlin-Zeit sorgt dafuer, dass "06:00" / "12:00" / "19:30" lokal passt.
+      TZ: Europe/Berlin
+
+      # ---- Pflicht-Secrets -----------------------------------------------
+      TELEGRAM_TOKEN:    ${{ secrets.TELEGRAM_TOKEN }}
+      TELEGRAM_CHAT_ID:  ${{ secrets.TELEGRAM_CHAT_ID }}
+
+      # ---- Optionale Kanaele --------------------------------------------
+      NTFY_TOPIC:         ${{ secrets.NTFY_TOPIC }}
+      NTFY_SERVER:        ${{ secrets.NTFY_SERVER }}
+      NTFY_TOKEN:         ${{ secrets.NTFY_TOKEN }}
+      TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+      TWILIO_AUTH_TOKEN:  ${{ secrets.TWILIO_AUTH_TOKEN }}
+      TWILIO_FROM:        ${{ secrets.TWILIO_FROM }}
+      SMS_TO:             ${{ secrets.SMS_TO }}
+
+      # ---- Konfiguration (nicht-sensitive, als Repo-Variables) ----------
+      PRODUCT_URL:         ${{ vars.PRODUCT_URL }}
+      PRODUCT_NAME:        ${{ vars.PRODUCT_NAME }}
+      NSUID:               ${{ vars.NSUID }}
+      SCHEDULE_TIMES:      ${{ vars.SCHEDULE_TIMES }}
+      LOW_PRICE_THRESHOLD: ${{ vars.LOW_PRICE_THRESHOLD }}
+      ALARM_BURST_COUNT:   ${{ vars.ALARM_BURST_COUNT }}
+      ALERT_ON_CHANGE:     ${{ vars.ALERT_ON_CHANGE }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: price_bot/requirements.txt
+
+      - name: Install dependencies
+        run: pip install --no-cache-dir -r price_bot/requirements.txt
+
+      - name: Run price check
+        working-directory: price_bot
+        run: python main.py --once
+
+      - name: Commit state on relevant change
+        if: always()
+        run: |
+          if [ ! -f price_bot/.state-dirty ]; then
+            echo "Kein Marker - keine relevante Aenderung, skip commit."
+            exit 0
+          fi
+          rm -f price_bot/.state-dirty
+
+          git config user.name  "price-bot"
+          git config user.email "price-bot@users.noreply.github.com"
+
+          # Falls price_state.json noch gar nicht im Repo ist (allerersten Run),
+          # wird sie hiermit hinzugefuegt. Danach nur noch Updates.
+          git add price_bot/price_state.json
+
+          if git diff --cached --quiet; then
+            echo "Nichts zum Committen."
+            exit 0
+          fi
+
+          git commit -m "chore(state): update price state [skip ci]"
+          # Push kann bei parallelem Commit (sehr selten) mal schiefgehen -
+          # Workflow bricht nicht hart ab, naechster Run glaettet das.
+          git push || echo "Push fehlgeschlagen - wird im naechsten Run erneut versucht."

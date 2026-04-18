@@ -1,0 +1,7 @@
+requests>=2.31
+beautifulsoup4>=4.12
+python-dotenv>=1.0
+
+# Optional: SMS via Twilio (kostenpflichtig). Kann weggelassen werden -
+# der Bot laeuft dann ohne SMS, aber weiter mit Telegram + ntfy.
+twilio>=9.0

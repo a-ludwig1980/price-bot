@@ -1,0 +1,25 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "price-bot",
+      "runtimeExecutable": "price_bot/.venv/bin/python",
+      "runtimeArgs": ["main.py"],
+      "cwd": "price_bot",
+      "port": null
+    },
+    {
+      "name": "price-bot-once",
+      "runtimeExecutable": "price_bot/.venv/bin/python",
+      "runtimeArgs": ["main.py", "--once"],
+      "cwd": "price_bot",
+      "port": null
+    },
+    {
+      "name": "bootstrap",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["bootstrap.sh"],
+      "port": null
+    }
+  ]
+}

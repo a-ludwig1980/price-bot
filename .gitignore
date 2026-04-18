@@ -1,0 +1,36 @@
+# ---- Secrets ----------------------------------------------------------------
+.env
+price_bot/.env
+
+# ---- Lokale Python-Umgebungen ----------------------------------------------
+.venv/
+price_bot/.venv/
+venv/
+env/
+
+# ---- Python-Artefakte -------------------------------------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ---- OS / IDE ---------------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# ---- Runtime-Marker --------------------------------------------------------
+# Wird vom Bot pro Run angelegt und vom GH-Actions-Workflow geloescht.
+price_bot/.state-dirty
+
+# ---- HTML-Debug-Snapshots aus der Dev-Phase --------------------------------
+*.bak
+price_bot/*.html
+
+# WICHTIG: price_bot/price_state.json wird NICHT ignoriert, damit der
+# GitHub-Actions-Workflow den Stand zwischen Runs persistieren kann.
