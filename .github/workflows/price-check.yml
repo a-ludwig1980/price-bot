@@ -1,9 +1,10 @@
 name: Nintendo Price Monitor
 
-# Laeuft alle 15 Minuten + erlaubt manuelles Triggern ueber 'Run workflow'.
+# Laeuft alle 15 Minuten (Ziel :00/:15/:30/:45, Cron 5 min frueher wegen
+# typischer Scheduler-Verzoegerung) + erlaubt manuelles Triggern.
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    - cron: '55,10,25,40 * * * *'
   workflow_dispatch:
 
 # Verhindert parallele Runs - sonst koennen zwei Jobs gleichzeitig
