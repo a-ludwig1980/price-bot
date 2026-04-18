@@ -1,14 +1,11 @@
 name: Nintendo Price Monitor
 
-# Laeuft alle 15 Minuten (Ziel :00/:15/:30/:45, Cron 5 min frueher wegen
-# typischer Scheduler-Verzoegerung).
-# Zusaetzlich 'repository_dispatch' als robuster externer Trigger - der
-# GitHub-Scheduler ueberspringt bei privaten Repos regelmaessig Runs,
-# daher feuert z.B. cron-job.org die API und triggert den Workflow
-# zuverlaessig. 'schedule' bleibt als Fallback aktiv.
+# Haupt-Trigger ist 'repository_dispatch' - ein externer Cron-Dienst
+# (cron-job.org) feuert alle 15 Minuten die GitHub-API und loest damit
+# zuverlaessig den Workflow aus. GitHub's eigener 'schedule'-Trigger war
+# zu unzuverlaessig (skippte regelmaessig Runs, auch in public Repos).
+# 'workflow_dispatch' erlaubt manuelles Triggern in der Actions-UI.
 on:
-  schedule:
-    - cron: '55,10,25,40 * * * *'
   repository_dispatch:
     types: [price-check]
   workflow_dispatch:
