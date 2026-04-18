@@ -189,10 +189,17 @@ def run_check(trigger: str, always_push: bool = False) -> None:
     _alarm_before = bool(state.get("low_price_alarm_sent", False))
 
     scheduled_key = _scheduled_push_due(state)
+    # Aenderungs-Alarm NUR wenn der neue Preis auch unter der Schwelle liegt.
+    # Sonst waere jede Zentcent-Aenderung eine Push-Nachricht.
+    change_alert_due = (
+        ALERT_ON_CHANGE
+        and changed
+        and _effective_price(price) <= LOW_PRICE_THRESHOLD
+    )
     push_regular = (
         always_push
         or scheduled_key is not None
-        or (ALERT_ON_CHANGE and changed)
+        or change_alert_due
     )
     if push_regular:
         reason = (
@@ -280,8 +287,11 @@ def main():
     log.info(f"Preis-Alarm     : <= {LOW_PRICE_THRESHOLD:.2f} € ({ALARM_BURST_COUNT}x)")
     log.info(f"Alarm bei Aender: {ALERT_ON_CHANGE}")
 
-    # Beim Start: immer Nachricht senden
-    run_check(trigger="Start", always_push=True)
+    # Beim Start: immer Nachricht senden - aber NUR im Daemon-Modus.
+    # Im --once-Modus (GitHub Actions) ist jeder Run ein "Start" - das
+    # wuerde alle 15 Minuten eine Nachricht erzeugen. Stattdessen greift
+    # dort nur die Schedule-Logik (6/12/18 Uhr) plus Preis-Alarm.
+    run_check(trigger="Start", always_push=not args.once)
 
     if args.once:
         log.info("--once gesetzt -> fertig.")
