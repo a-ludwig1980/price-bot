@@ -1,10 +1,16 @@
 name: Nintendo Price Monitor
 
 # Laeuft alle 15 Minuten (Ziel :00/:15/:30/:45, Cron 5 min frueher wegen
-# typischer Scheduler-Verzoegerung) + erlaubt manuelles Triggern.
+# typischer Scheduler-Verzoegerung).
+# Zusaetzlich 'repository_dispatch' als robuster externer Trigger - der
+# GitHub-Scheduler ueberspringt bei privaten Repos regelmaessig Runs,
+# daher feuert z.B. cron-job.org die API und triggert den Workflow
+# zuverlaessig. 'schedule' bleibt als Fallback aktiv.
 on:
   schedule:
     - cron: '55,10,25,40 * * * *'
+  repository_dispatch:
+    types: [price-check]
   workflow_dispatch:
 
 # Verhindert parallele Runs - sonst koennen zwei Jobs gleichzeitig
