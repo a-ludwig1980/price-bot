@@ -7,7 +7,7 @@ Verhalten:
   - Zu den SCHEDULE_HOURS (Default 06, 12, 18 Uhr) taeglich eine Standard-
     Nachricht senden. Die Tageswechsel werden korrekt erkannt, ein
     Zeitpunkt pro Tag wird genau einmal gefeuert.
-  - Wenn der Preis UNTER LOW_PRICE_THRESHOLD faellt, werden ALARM_BURST_COUNT
+  - Wenn der Preis <= LOW_PRICE_THRESHOLD faellt, werden ALARM_BURST_COUNT
     Nachrichten kurz hintereinander gesendet. Solange der Preis drunter
     bleibt, wird der Alarm nicht wiederholt.
   - Bei Preisaenderungen zwischen zwei Checks wird (falls ALERT_ON_CHANGE)
@@ -140,13 +140,13 @@ def _format_alarm_message(price: PriceInfo, i: int, n: int) -> tuple[str, str]:
     tg = (
         f"🚨 <b>PREISALARM ({i}/{n})</b>\n"
         f"{PRODUCT_NAME}\n"
-        f"💥 <b>{cur}</b> (unter {LOW_PRICE_THRESHOLD:.2f} €)\n"
+        f"💥 <b>{cur}</b> (≤ {LOW_PRICE_THRESHOLD:.2f} €)\n"
         f'<a href="{PRODUCT_URL}">Jetzt im Nintendo eShop</a>'
     )
     # SMS: kurz und knackig (Single-Segment wenn moeglich)
     sms = (
         f"PREISALARM {i}/{n}: {PRODUCT_NAME} jetzt {cur} "
-        f"(unter {LOW_PRICE_THRESHOLD:.0f}€). {PRODUCT_URL}"
+        f"(<={LOW_PRICE_THRESHOLD:.0f}€). {PRODUCT_URL}"
     )
     return tg, sms
 
@@ -221,7 +221,7 @@ def run_check(trigger: str, always_push: bool = False) -> None:
     # Low-price alarm
     effective = _effective_price(price)
     alarm_sent = bool(state.get("low_price_alarm_sent", False))
-    if effective > 0 and effective < LOW_PRICE_THRESHOLD:
+    if effective > 0 and effective <= LOW_PRICE_THRESHOLD:
         if not alarm_sent:
             _send_alarm_burst(price)
             state["low_price_alarm_sent"] = True
@@ -277,7 +277,7 @@ def main():
     log.info(f"Check-Intervall : alle {CHECK_INTERVAL_MIN} Min")
     times_str = ", ".join(f"{h:02d}:{m:02d}" for h, m in SCHEDULE_TIMES)
     log.info(f"Standard-Pushes : {times_str}")
-    log.info(f"Preis-Alarm     : unter {LOW_PRICE_THRESHOLD:.2f} € ({ALARM_BURST_COUNT}x)")
+    log.info(f"Preis-Alarm     : <= {LOW_PRICE_THRESHOLD:.2f} € ({ALARM_BURST_COUNT}x)")
     log.info(f"Alarm bei Aender: {ALERT_ON_CHANGE}")
 
     # Beim Start: immer Nachricht senden
