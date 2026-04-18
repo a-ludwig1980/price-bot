@@ -23,8 +23,11 @@ import requests
 
 log = logging.getLogger("ntfy")
 
-NTFY_SERVER = os.getenv("NTFY_SERVER", "https://ntfy.sh").rstrip("/")
-NTFY_TOPIC = os.getenv("NTFY_TOPIC", "").strip()
+# Wichtig: `or`-Fallback statt Default-Argument, weil GitHub Actions leere
+# Strings setzt, wenn ein referenziertes Secret nicht existiert. In dem Fall
+# wuerde os.getenv("NTFY_SERVER", "https://ntfy.sh") "" liefern statt den Default.
+NTFY_SERVER = (os.getenv("NTFY_SERVER") or "https://ntfy.sh").rstrip("/")
+NTFY_TOPIC = (os.getenv("NTFY_TOPIC") or "").strip()
 NTFY_TOKEN = os.getenv("NTFY_TOKEN", "").strip()
 
 
