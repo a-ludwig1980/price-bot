@@ -38,9 +38,9 @@ NSUID = os.getenv("NSUID", "70010000042763")
 # --- Schedule -------------------------------------------------------------
 # Uhrzeiten zu denen taeglich eine 'Standard'-Nachricht kommt.
 # Format: komma-separiert, entweder volle Stunden ('6') oder HH:MM ('19:30').
-# ENV-Variable: SCHEDULE_TIMES="06:00,12:00,19:30"
+# ENV-Variable: SCHEDULE_TIMES="06:00"
 # Aliasname SCHEDULE_HOURS wird als Fallback gelesen (Backcompat).
-_raw = os.getenv("SCHEDULE_TIMES") or os.getenv("SCHEDULE_HOURS", "6,12,18")
+_raw = os.getenv("SCHEDULE_TIMES") or os.getenv("SCHEDULE_HOURS", "6")
 
 
 def _parse_schedule(raw: str) -> list[tuple[int, int]]:
@@ -62,7 +62,7 @@ def _parse_schedule(raw: str) -> list[tuple[int, int]]:
     return sorted(set(out))
 
 
-SCHEDULE_TIMES: list[tuple[int, int]] = _parse_schedule(_raw) or [(6, 0), (12, 0), (18, 0)]
+SCHEDULE_TIMES: list[tuple[int, int]] = _parse_schedule(_raw) or [(6, 0)]
 
 # Wie oft der Preis im Hintergrund geprueft wird (Minuten).
 CHECK_INTERVAL_MIN = int(os.getenv("CHECK_INTERVAL_MIN", "15"))
