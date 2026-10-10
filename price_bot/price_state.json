@@ -4,10 +4,10 @@
   "price_raw": 69.99,
   "discount_raw": null,
   "sales_status": "onsale",
-  "updated_at": "2026-10-09T13:08:37",
+  "updated_at": "2026-10-10T12:26:03",
   "last_scheduled_push": "2026-04-18T18",
   "fired_today": {
-    "2026-10-09": [
+    "2026-10-10": [
       "06:00"
     ]
   }
